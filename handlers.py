@@ -44,7 +44,7 @@ async def add(message: types.Message, state: FSMContext):
 @admin_router.message(Add.photo, F.photo)
 #@admin_router.message(F.photo)
 async def add_photo(message: types.Message, state: FSMContext):
-    print(message.caption)
+    #print(message.caption)
     tmp0 = await state.get_data()
     tmp = tmp0['photo']
     tmp.append(message.photo[-1].file_id)
@@ -118,7 +118,7 @@ async def edit(message: types.Message, state: FSMContext):
 async def choice(message: types.Message, state: FSMContext):
     prod = await find_product_by_article(message.text)
     if prod != 1:
-        photo_file_ids = str(prod[1]).split(',')
+        photo_file_ids = prod[1].split(',')
         name = prod[2]
         article = prod[3]
         await state.update_data(prod = prod)
@@ -129,6 +129,7 @@ async def choice(message: types.Message, state: FSMContext):
                 media.append(types.InputMediaPhoto(media=photo_file_id, caption=f'{name}\nСерийный номер: {article}'))
             else:
                 media.append(types.InputMediaPhoto(media=photo_file_id))
+            print(media[0])
         await bot.send_media_group(chat_id=message.from_user.id, media=media)
         await message.answer(text="Выберите категорию, которую хотите изменить", reply_markup=builder_inline_admin.as_markup())
     else:
@@ -146,7 +147,7 @@ async def new_record(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Введите изменение")
 
 
-@admin_router.message(Edit.category)
+@admin_router.message((Edit.category), ~(F.text == 'Добавить'), ~(F.text == 'Удалить'), ~(F.text == 'Изменить'), ~(F.text == 'Скачать весь товар'), ~(Command('admin')), ~(Command('start')))
 async def new_record(message: types.Message, state: FSMContext):
     global tmp
     data = await state.get_data()
@@ -211,7 +212,7 @@ async def check_product(callback: types.CallbackQuery):
 async def check_product(message: types.Message):
     prod = await search_product_by_article_or_name(message.text)
     if prod != 1:
-        photo_file_ids = str(prod[1]).split(',')
+        photo_file_ids = prod[1].split(',')
         name = prod[2]
         article = prod[3]
         media = []
